@@ -1,157 +1,98 @@
-# 📰 Email News Automation (Python)
+# Email News Automation
 
-A Python-based automation script that fetches the latest news on a given topic using **NewsAPI** and sends a **formatted HTML email digest** directly to the user.
+A small Django app for storing newsletter recipients, importing recipient CSV files, fetching topic-based news with NewsAPI, and sending a clean HTML digest through SMTP.
 
-This project demonstrates real-world automation by combining **API integration, data processing, and email delivery**.
+## Features
 
----
+- SQLite-backed recipient storage with Django models
+- Manual recipient add, delete, and list screens
+- CSV import with `name,email` headers
+- Duplicate email prevention and email validation
+- Separate campaign screen for previewing and sending a topic digest
+- Top 5 NewsAPI articles per topic, selected from a larger locally ranked candidate pool
+- HTML email formatting
+- Basic campaign history and per-recipient delivery status
+- Django admin support for recipients, campaigns, and deliveries
 
-## ✨ Features
+## Project Structure
 
-### 1. Fetch Latest News
-
-Retrieves recent news articles based on a chosen topic using NewsAPI.
-
-### 2. Dynamic Topic Selection
-
-Users can define a topic (e.g., "gym", "technology", "AI") to receive relevant news updates.
-
-### 3. HTML Email Formatting
-
-Articles are structured into a clean HTML email format for better readability.
-
-### 4. Automated Email Delivery
-
-Sends the news digest directly to the user using Gmail SMTP.
-
----
-
-## 🧠 How It Works
-
-1. Load environment variables (`EMAIL`, `PASSWORD`, `API_KEY`)
-2. Send request to NewsAPI with a topic
-3. Parse the response JSON
-4. Extract top 5 articles
-5. Format them into an HTML email
-6. Send email using SMTP
-
----
-
-## 📸 Email Preview
-
-Below is an example of the automated news email sent by the script:
-
-![Email Preview](screenshots/email-preview.png)
-
----
-
-## 📁 Project Structure
-
-email-news-automation/
-│
-├── main.py
-├── .env
-├── screenshots/
-│   └── email-preview.png
-└── README.md
-
----
-
-## 🔑 Environment Variables
-
-Create a `.env` file in your project directory:
-
-EMAIL=[your_email@gmail.com](mailto:your_email@gmail.com)
-PASSWORD=your_app_password
-API_KEY=your_newsapi_key
-
-> ⚠️ Use a Gmail **App Password**, not your actual password.
-
----
-
-## 💻 Example Code Snippet
-
-```python
-for article in content['articles'][0:5]:
-    myArticle += f"""
-    <h3>{article['title']}</h3>
-    <p>{article.get('description', 'No description available.')}</p>
-    <a href="{article['url']}">Read full article</a>
-    <hr>
-    """
+```text
+email_news_automation/
+  email_news_automation/
+    settings.py
+    urls.py
+    wsgi.py
+  newsletter/
+    models.py                 # Recipient, Campaign, Delivery
+    forms.py                  # Recipient, CSV, and campaign forms
+    views.py                  # Recipient management and campaign UI
+    urls.py
+    services/
+      campaigns.py            # Preview/send workflow
+      email_formatting.py     # HTML digest builder
+      email_sender.py         # SMTP delivery
+      news.py                 # NewsAPI integration
+      recipients.py           # CSV import helpers
+    templates/newsletter/
+    static/newsletter/
+    migrations/
+  manage.py
+  main.py
+  requirements.txt
+  README.md
 ```
 
----
+## Environment Variables
 
-## 📧 Example Output
+Create a `.env` file in the project root:
 
-The email contains:
+```env
+EMAIL=your_email@gmail.com
+PASSWORD=your_gmail_app_password
+API_KEY=your_newsapi_key
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+DJANGO_SECRET_KEY=change-this-for-production
+DJANGO_DEBUG=1
+DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
+```
 
-* Top 5 latest news articles
-* Article title
-* Short description
-* Clickable link to full article
+`SMTP_HOST`, `SMTP_PORT`, and the Django settings are optional for local development. Gmail users should use an App Password.
 
----
+## Run Locally
 
-## ⚙️ How to Run
+```bash
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
 
-### 1. Install dependencies
+Open `http://127.0.0.1:8000`.
 
-pip install requests python-dotenv
+The SQLite database is created automatically as `newsletter.db` when migrations run.
 
----
+## CSV Import Format
 
-### 2. Set up environment variables
+Upload a UTF-8 CSV file with this header:
 
-Add your email credentials and API key in `.env`
+```csv
+name,email
+Sahil,sahil@example.com
+Alex,alex@example.com
+```
 
----
+Malformed rows are rejected. Duplicate emails already in the database or repeated inside the same file are skipped.
 
-### 3. Run the script
+## Usage
 
-python main.py
+1. Add recipients manually or import a CSV on the Recipients page.
+2. Go to Campaigns.
+3. Enter a topic.
+4. Preview the generated digest.
+5. Send the digest to all stored recipients.
 
----
+## Notes
 
-## 🛠 Technologies Used
-
-* Python
-* Requests (API calls)
-* SMTP (Email sending)
-* HTML (Email formatting)
-* dotenv (Environment variables)
-
----
-
-## ⚠️ Important Notes
-
-* Do NOT expose your API key or email credentials publicly
-* Ensure correct date format (`YYYY-MM-DD`)
-* Free NewsAPI plan has request limits
-
----
-
-## 🚀 Future Improvements
-
-* Add automatic scheduling (daily emails)
-* Support multiple topics
-* Improve email UI design
-* Add user input interface
-* Deploy using Streamlit or web app
-
----
-
-## 🎯 Learning Outcomes
-
-* Integrated external APIs
-* Built automation workflows
-* Learned email protocols (SMTP)
-* Generated dynamic HTML content
-* Improved debugging and error handling
-
----
-
-## 👨‍💻 Author
-
-Sahil Sah
+- Keep `.env` private. It should not be committed.
+- Free NewsAPI accounts have request limits and may restrict article age.
+- Delivery failures are recorded per recipient so a campaign can finish even if one address fails.

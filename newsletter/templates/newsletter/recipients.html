@@ -1,0 +1,69 @@
+{% extends "newsletter/base.html" %}
+
+{% block content %}
+<section class="grid two">
+    <div class="panel">
+        <h1>Recipients</h1>
+        <form method="post" class="stack">
+            {% csrf_token %}
+            <label>
+                Name
+                {{ form.name }}
+            </label>
+            <label>
+                Email
+                {{ form.email }}
+            </label>
+            <button type="submit">Add recipient</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Import CSV</h2>
+        <form method="post" action="{% url 'newsletter:import_recipients' %}" enctype="multipart/form-data" class="stack">
+            {% csrf_token %}
+            <label>
+                CSV file with headers: name,email
+                {{ csv_form.csv_file }}
+            </label>
+            <button type="submit">Import recipients</button>
+        </form>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="section-head">
+        <h2>Stored recipients</h2>
+        <span>{{ recipients|length }} total</span>
+    </div>
+    {% if recipients %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recipient in recipients %}
+                    <tr>
+                        <td>{{ recipient.name }}</td>
+                        <td>{{ recipient.email }}</td>
+                        <td>{{ recipient.created_at }}</td>
+                        <td class="actions">
+                            <form method="post" action="{% url 'newsletter:delete_recipient' recipient.id %}">
+                                {% csrf_token %}
+                                <button class="danger" type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">No recipients yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

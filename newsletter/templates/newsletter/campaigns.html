@@ -1,0 +1,64 @@
+{% extends "newsletter/base.html" %}
+
+{% block content %}
+<section class="panel">
+    <div class="section-head">
+        <div>
+            <h1>Newsletter campaign</h1>
+            <p class="muted">{{ recipient_count }} stored recipients</p>
+        </div>
+    </div>
+    <form method="post" class="campaign-form">
+        {% csrf_token %}
+        <label>
+            Topic
+            {{ form.topic }}
+        </label>
+        <div class="button-row">
+            <button name="action" value="preview" type="submit">Preview digest</button>
+            <button name="action" value="send" type="submit">Send to all recipients</button>
+        </div>
+    </form>
+</section>
+
+{% if preview %}
+    <section class="panel">
+        <h2>{{ preview.subject }}</h2>
+        <div class="preview">
+            {{ preview.html|safe }}
+        </div>
+    </section>
+{% endif %}
+
+<section class="panel">
+    <h2>Recent send history</h2>
+    {% if campaigns %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Topic</th>
+                    <th>Status</th>
+                    <th>Recipients</th>
+                    <th>Delivered</th>
+                    <th>Failed</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for campaign in campaigns %}
+                    <tr>
+                        <td>{{ campaign.topic }}</td>
+                        <td>{{ campaign.status }}</td>
+                        <td>{{ campaign.total_recipients }}</td>
+                        <td>{{ campaign.delivered_count }}</td>
+                        <td>{{ campaign.failed_count }}</td>
+                        <td>{{ campaign.created_at }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">No campaigns sent yet.</p>
+    {% endif %}
+</section>
+{% endblock %}
